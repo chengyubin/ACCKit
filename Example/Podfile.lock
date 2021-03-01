@@ -7,21 +7,18 @@ PODS:
     - FBSnapshotTestCase/Core
 
 DEPENDENCIES:
-  - ACCKit (from `../`)
+  - ACCKit
   - FBSnapshotTestCase
 
 SPEC REPOS:
-  trunk:
+  https://github.com/cocoapods/specs.git:
+    - ACCKit
     - FBSnapshotTestCase
 
-EXTERNAL SOURCES:
-  ACCKit:
-    :path: "../"
-
 SPEC CHECKSUMS:
-  ACCKit: 376b88164cacbc8ef178707fef23492b82d3bd15
+  ACCKit: a654c2cd28fc8c0e21980b6f0230ba7c9f4a3126
   FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
 
-PODFILE CHECKSUM: 33e31d33f5e08c70dbf76439102ded692aa35a65
+PODFILE CHECKSUM: 6f5e69dfaf60d6756399a5ffc1dfe3daaffa80c7
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.5.3

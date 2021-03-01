@@ -39,6 +39,8 @@
 /* Begin PBXFileReference section */
 		02E7E5ABC402A4064CEAAA95 /* Pods-ACCKit_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ACCKit_Example.release.xcconfig"; path = "Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example.release.xcconfig"; sourceTree = "<group>"; };
 		3A060E7CD08327B7D2245D2E /* Pods-ACCKit_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ACCKit_Example.debug.xcconfig"; path = "Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example.debug.xcconfig"; sourceTree = "<group>"; };
+		421920D597C3D4AC9E2EB8FA /* Pods-ACCKit_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ACCKit_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example.release.xcconfig"; sourceTree = "<group>"; };
+		473AB3BBFE8CCE99CEF40E6E /* Pods-ACCKit_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ACCKit_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-ACCKit_Tests/Pods-ACCKit_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		49929A40E824FDA8CAB3B4CD /* Pods_ACCKit_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ACCKit_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6003F58A195388D20070C39A /* ACCKit_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ACCKit_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6003F58D195388D20070C39A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -63,10 +65,12 @@
 		68A45AA5C91736A819790DA3 /* Pods-ACCKit_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ACCKit_Tests.debug.xcconfig"; path = "Target Support Files/Pods-ACCKit_Tests/Pods-ACCKit_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		6CE71769B39DCFF42898722B /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		71719F9E1E33DC2100824A3D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7F597AC151CBFBA21F29181A /* Pods-ACCKit_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ACCKit_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		8279012CBCC703E613A25A71 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		873B8AEA1B1F5CCA007FD442 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		9E934D9A373C09ACAD853D82 /* ACCKit.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = ACCKit.podspec; path = ../ACCKit.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A01FCE50BC649074984C6FC2 /* Pods_ACCKit_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ACCKit_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0A7A68C48C258CB5D9D1809 /* Pods-ACCKit_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ACCKit_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ACCKit_Tests/Pods-ACCKit_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +106,10 @@
 				02E7E5ABC402A4064CEAAA95 /* Pods-ACCKit_Example.release.xcconfig */,
 				68A45AA5C91736A819790DA3 /* Pods-ACCKit_Tests.debug.xcconfig */,
 				64ED53BAE9ABFC10E2BB1504 /* Pods-ACCKit_Tests.release.xcconfig */,
+				7F597AC151CBFBA21F29181A /* Pods-ACCKit_Example.debug.xcconfig */,
+				421920D597C3D4AC9E2EB8FA /* Pods-ACCKit_Example.release.xcconfig */,
+				B0A7A68C48C258CB5D9D1809 /* Pods-ACCKit_Tests.debug.xcconfig */,
+				473AB3BBFE8CCE99CEF40E6E /* Pods-ACCKit_Tests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -305,7 +313,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example-frameworks.sh",
+				"${SRCROOT}/Pods/Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/ACCKit/ACCKit.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -314,7 +322,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example-frameworks.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ACCKit_Example/Pods-ACCKit_Example-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		2665E983E9D7510026D385BE /* [CP] Embed Pods Frameworks */ = {
@@ -323,7 +331,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ACCKit_Tests/Pods-ACCKit_Tests-frameworks.sh",
+				"${SRCROOT}/Pods/Target Support Files/Pods-ACCKit_Tests/Pods-ACCKit_Tests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/FBSnapshotTestCase/FBSnapshotTestCase.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -332,7 +340,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ACCKit_Tests/Pods-ACCKit_Tests-frameworks.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ACCKit_Tests/Pods-ACCKit_Tests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		2A5744CEA936A35342DB1DD9 /* [CP] Check Pods Manifest.lock */ = {
@@ -513,7 +521,7 @@
 		};
 		6003F5C0195388D20070C39A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3A060E7CD08327B7D2245D2E /* Pods-ACCKit_Example.debug.xcconfig */;
+			baseConfigurationReference = 7F597AC151CBFBA21F29181A /* Pods-ACCKit_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 785DZXGG54;
@@ -530,7 +538,7 @@
 		};
 		6003F5C1195388D20070C39A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 02E7E5ABC402A4064CEAAA95 /* Pods-ACCKit_Example.release.xcconfig */;
+			baseConfigurationReference = 421920D597C3D4AC9E2EB8FA /* Pods-ACCKit_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 785DZXGG54;
@@ -547,7 +555,7 @@
 		};
 		6003F5C3195388D20070C39A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 68A45AA5C91736A819790DA3 /* Pods-ACCKit_Tests.debug.xcconfig */;
+			baseConfigurationReference = B0A7A68C48C258CB5D9D1809 /* Pods-ACCKit_Tests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -572,7 +580,7 @@
 		};
 		6003F5C4195388D20070C39A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 64ED53BAE9ABFC10E2BB1504 /* Pods-ACCKit_Tests.release.xcconfig */;
+			baseConfigurationReference = 473AB3BBFE8CCE99CEF40E6E /* Pods-ACCKit_Tests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				FRAMEWORK_SEARCH_PATHS = (
