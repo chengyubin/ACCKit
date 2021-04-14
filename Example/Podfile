@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '10.0'
+
+target 'ACCKit_Example' do
+  pod 'ACCKit', :path => '../'
+#  pod 'ACCKit'
+  target 'ACCKit_Tests' do
+    inherit! :search_paths
+
+    pod 'FBSnapshotTestCase'
+  end
+end
