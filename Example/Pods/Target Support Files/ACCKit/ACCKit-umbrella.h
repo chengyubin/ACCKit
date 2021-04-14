@@ -10,6 +10,8 @@
 #endif
 #endif
 
+#import "ACCAudioPlayer.h"
+#import "ACCAudioRecorder.h"
 #import "ACCKit.h"
 #import "ACCSensorMonitor.h"
 #import "ACCTimer.h"

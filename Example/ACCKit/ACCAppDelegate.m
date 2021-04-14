@@ -7,6 +7,9 @@
 //
 
 #import "ACCAppDelegate.h"
+@interface ACCAppDelegate()
+@property (nonatomic) UIBackgroundTaskIdentifier backgroundTask;
+@end
 
 @implementation ACCAppDelegate
 
@@ -26,11 +29,21 @@
 {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+
+    self.backgroundTask = [application beginBackgroundTaskWithExpirationHandler:^{
+        NSLog(@"end background task");        
+        [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTask];
+        self.backgroundTask = UIBackgroundTaskInvalid;
+    }];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    if (self.backgroundTask) {
+        [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTask];
+        self.backgroundTask = UIBackgroundTaskInvalid;
+    }
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application

@@ -10,4 +10,7 @@
 
 #import "ACCSensorMonitor.h"
 #import "ACCTimerManager.h"
+#import "ACCAudioPlayer.h"
+#import "ACCAudioRecorder.h"
+
 #endif /* ACCKit_h */
