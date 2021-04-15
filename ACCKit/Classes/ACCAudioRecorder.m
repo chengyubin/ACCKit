@@ -182,7 +182,7 @@ static OSStatus on_Audio_Record(void *inRefCon,
 
     OSStatus stauts = AudioUnitRender(instance->au_component, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &bufferList);
     if (stauts != noErr) {
-        NSLog(@"recordcallback error is %d",stauts);
+        NSLog(@"recordcallback error is %@",@(stauts));
     }
     
     for (int i = 0; i < 1; i++) {

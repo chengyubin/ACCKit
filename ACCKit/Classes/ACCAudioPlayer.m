@@ -203,7 +203,7 @@ static OSStatus on_Audio_Playback(void *inRefCon,
     return NO;
 }
 
-- (void)appendPcm:(const void *)data size:(uint)size {
+- (void)appendPCM:(const void *)data size:(uint)size {
     TPCircularBufferProduceBytes(buffer, data, (uint32_t)size);
 }
 
