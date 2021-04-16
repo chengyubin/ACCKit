@@ -26,14 +26,24 @@
                                     <action selector="onRecordButtonAction:" destination="whP-gf-Uak" eventType="touchUpInside" id="giA-iT-oAH"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N23-hN-vYR">
+                                <rect key="frame" x="172" y="116" width="31" height="30"/>
+                                <state key="normal" title="静音"/>
+                                <connections>
+                                    <action selector="onMuteButtonAction:" destination="whP-gf-Uak" eventType="touchUpInside" id="efa-ac-lE3"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="N23-hN-vYR" firstAttribute="top" secondItem="AN8-z1-9lJ" secondAttribute="bottom" constant="8" symbolic="YES" id="6Bq-QC-1at"/>
                             <constraint firstItem="AN8-z1-9lJ" firstAttribute="top" secondItem="uEw-UM-LJ8" secondAttribute="bottom" constant="78" id="DEO-6q-1JM"/>
                             <constraint firstItem="AN8-z1-9lJ" firstAttribute="centerX" secondItem="TpU-gO-2f1" secondAttribute="centerX" id="Wdk-i2-iz9"/>
+                            <constraint firstItem="N23-hN-vYR" firstAttribute="centerX" secondItem="TpU-gO-2f1" secondAttribute="centerX" id="h77-P5-y48"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="muteButton" destination="N23-hN-vYR" id="CC2-wD-NMu"/>
                         <outlet property="recordButton" destination="AN8-z1-9lJ" id="hh7-8u-top"/>
                     </connections>
                 </viewController>

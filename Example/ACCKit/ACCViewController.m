@@ -12,6 +12,7 @@
 @interface ACCViewController ()
 @property (nonatomic, strong) ACCSensorMonitor *sensorMonitor;
 @property (weak, nonatomic) IBOutlet UIButton *recordButton;
+@property (weak, nonatomic) IBOutlet UIButton *muteButton;
 
 @property (nonatomic, strong) ACCAudioRecorder *recorder;
 @property (nonatomic, strong) ACCAudioPlayer *player;
@@ -52,6 +53,17 @@
         [self.recorder stop];
         [self.player stop];
         [button setTitle:@"录音" forState:UIControlStateNormal];
+    }
+}
+- (IBAction)onMuteButtonAction:(id)sender {
+    UIButton *button = sender;
+    NSString *title = button.titleLabel.text;
+    if ([title isEqualToString:@"静音"]) {
+        [self.recorder setEnable:NO];
+        [button setTitle:@"解除静音" forState:UIControlStateNormal];
+    } else {
+        [self.recorder setEnable:YES];
+        [button setTitle:@"静音" forState:UIControlStateNormal];
     }
 }
 

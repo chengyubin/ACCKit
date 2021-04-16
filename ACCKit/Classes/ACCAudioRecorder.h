@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 //多channel情况下，data为合并后音频
 @property (nonatomic, copy) void(^recordCallback)(const void *data, uint size);
+@property (nonatomic) BOOL enable;
 
 /// 初始化
 /// @param sampleRate 输出采样率

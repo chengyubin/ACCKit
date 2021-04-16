@@ -8,6 +8,7 @@
 #import "ACCAudioPlayer.h"
 #import <TPCircularBuffer/TPCircularBuffer.h>
 #import <AudioToolbox/AudioToolbox.h>
+#import <MediaPlayer/MediaPlayer.h>
 @interface ACCAudioPlayer()
 {
     AudioComponentInstance au_component;
@@ -31,7 +32,6 @@
         _channelsPerFrame = channelsPerFrame;
         _bitsPerChannel = bitsPerChannel;
         [self initPlayer];
-
     }
     return self;
 }
@@ -43,6 +43,7 @@
 }
 
 - (void)initPlayer {
+    _enable = YES;
     buffer = malloc(sizeof(TPCircularBuffer));
     TPCircularBufferInit(buffer, _sampleRate*_channelsPerFrame*_bitsPerChannel/8);
 
@@ -140,13 +141,17 @@ static OSStatus on_Audio_Playback(void *inRefCon,
         UInt16 *frameBuffer = buffer.mData;
         UInt32 byteSize = buffer.mDataByteSize;
         
+        //默认播放静音
+        memset(frameBuffer, 0, byteSize);
+        
         uint32_t availableBytes = 0;
         void *bufferTail = TPCircularBufferTail(instance->buffer, &availableBytes);
         
-        memset(frameBuffer, 0, byteSize);
         UInt32 len = 0;
         len = (byteSize > availableBytes ? availableBytes : byteSize);
-        memcpy(frameBuffer, bufferTail, len);
+        if (instance.enable) {
+            memcpy(frameBuffer, bufferTail, len);
+        }
         TPCircularBufferConsume(instance->buffer, len);
         
         //回调通知本次播放数据是否足够
@@ -204,7 +209,28 @@ static OSStatus on_Audio_Playback(void *inRefCon,
 }
 
 - (void)appendPCM:(const void *)data size:(uint)size {
-    TPCircularBufferProduceBytes(buffer, data, (uint32_t)size);
+    if (self.enable) {
+        TPCircularBufferProduceBytes(buffer, data, (uint32_t)size);
+    }
+}
+
+#pragma mark - Utils
+-(void)setVolume:(double)volume {
+    MPVolumeView *volumeView = [[MPVolumeView alloc]init];
+    volumeView.showsVolumeSlider = YES;
+    UISlider *volumeViewSlider = nil;
+    if (volumeViewSlider == nil) {
+        for (UIView *view in [volumeView subviews]) {
+            if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
+                volumeViewSlider = (UISlider *)view;
+                break;
+            }
+        }
+    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [volumeViewSlider setValue:volume animated:NO];
+        [volumeViewSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
+    });
 }
 
 - (BOOL)checkStatus:(OSStatus)status {

@@ -39,7 +39,7 @@ TODO: Add long description of the pod here.
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
   # s.dependency 'AFNetworking', '~> 2.3'
-  s.frameworks = 'AudioToolbox', 'AVFoundation'
+  s.frameworks = 'AudioToolbox', 'AVFoundation', 'MediaPlayer'
   s.dependency 'TPCircularBuffer', '1.6.1'
 
 end

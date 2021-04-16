@@ -42,7 +42,8 @@
 //        NSLog(@"ERROR: NO AUDIO INPUT DEVICE");
 //        return ;
 //    }
-    
+    _enable = YES;
+
     //输入
     OSStatus status;
     AudioComponentDescription  desc;
@@ -170,7 +171,10 @@ static OSStatus on_Audio_Record(void *inRefCon,
                                 uint32_t inNumberFrames,
                                 AudioBufferList *ioData) {
     ACCAudioRecorder *instance = (__bridge ACCAudioRecorder *)inRefCon;
-
+    if (instance.enable == NO) {
+        return noErr;
+    }
+    
     AudioBuffer buffer;
     buffer.mData = NULL;
     buffer.mDataByteSize = 0;
