@@ -48,7 +48,7 @@
     OSStatus status;
     AudioComponentDescription  desc;
     desc.componentType         = kAudioUnitType_Output;         //音频输出
-    desc.componentSubType      = kAudioUnitSubType_VoiceProcessingIO;    //输出通道
+    desc.componentSubType      = kAudioUnitSubType_RemoteIO;    //输出通道
     desc.componentFlags        = 0;                             //默认“0”
     desc.componentFlagsMask    = 0;                             //默认“0”
     desc.componentManufacturer = kAudioUnitManufacturer_Apple;  //制造商信息
@@ -174,7 +174,7 @@ static OSStatus on_Audio_Record(void *inRefCon,
     if (instance.enable == NO) {
         return noErr;
     }
-    
+
     AudioBuffer buffer;
     buffer.mData = NULL;
     buffer.mDataByteSize = 0;
