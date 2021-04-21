@@ -11,7 +11,9 @@
 #import <MediaPlayer/MediaPlayer.h>
 @interface ACCAudioPlayer()
 {
-    AudioComponentInstance au_component;
+    AudioComponentInstance iOUnit;
+    AudioComponentInstance mixerUnit;
+
     TPCircularBuffer *buffer;
 }
 
@@ -37,8 +39,11 @@
 }
 
 - (void)dealloc {
-    if (au_component) {
-        AudioComponentInstanceDispose(au_component);
+    if (iOUnit) {
+        AudioComponentInstanceDispose(iOUnit);
+    }
+    if (mixerUnit) {
+        AudioComponentInstanceDispose(mixerUnit);
     }
 }
 
@@ -46,7 +51,29 @@
     _enable = YES;
     buffer = malloc(sizeof(TPCircularBuffer));
     TPCircularBufferInit(buffer, _sampleRate*_channelsPerFrame*_bitsPerChannel/8);
+    BOOL result = YES;
+    result &= [self configIOUnit];
+    result &= [self configMixerUnit];
+    
+    //make connection, mixunit bus0 output to iounit bus0 input
+    AudioUnitConnection connection;
+    connection.sourceAudioUnit    = mixerUnit;
+    connection.sourceOutputNumber = 0;
+    connection.destInputNumber    = 0;
+    
+    OSStatus status = AudioUnitSetProperty(iOUnit,
+                                           kAudioUnitProperty_MakeConnection,
+                                           kAudioUnitScope_Input,
+                                           0,
+                                           &connection,
+                                           sizeof(connection));
+    result &= [self checkStatus:status error:@"make connection failed"];
+    
+    NSLog(@"ACCAudioPlayer:初始化%@",result?@"成功":@"失败");
+}
 
+- (BOOL)configIOUnit {
+    BOOL result = YES;
     OSStatus status;
     AudioComponentDescription  desc;
     desc.componentType         = kAudioUnitType_Output;         //音频输出
@@ -59,9 +86,9 @@
     AudioComponent inputComponent = AudioComponentFindNext(NULL, &desc);    //找音频部件
 
     // Get audio units
-    status = AudioComponentInstanceNew(inputComponent, &au_component);         //实现这个部件单元
-    [self checkStatus:status];
-    
+    status = AudioComponentInstanceNew(inputComponent, &iOUnit);         //实现这个部件单元
+    result &= [self checkStatus:status error:@"iOUnit AudioUnitInitialize failed"];
+
     
     //bus0 应用输出到硬件
     AudioUnitElement bus0 = 0;
@@ -69,56 +96,88 @@
         // Enable IO for playing（kAudioUnitScope_Input ==> recording）
         // flag 1 means start, 0 means stop
         uint32_t flag = 1;
-        status = AudioUnitSetProperty(au_component,
+        status = AudioUnitSetProperty(iOUnit,
                                       kAudioOutputUnitProperty_EnableIO,
                                       kAudioUnitScope_Output, //【播放必定选kAudioUnitScope_Output!!!】
                                       bus0,
                                       &flag,
                                       sizeof(flag));
-        [self checkStatus:status];
-        
-        
-        //Describe format 参数可以根据项目需要自行调整
-        AudioStreamBasicDescription audioFormat;
-        audioFormat.mSampleRate       = _sampleRate;
-        audioFormat.mBitsPerChannel   = _bitsPerChannel;
-        audioFormat.mChannelsPerFrame = _channelsPerFrame;
-        audioFormat.mFormatID         = kAudioFormatLinearPCM;
-        audioFormat.mFormatFlags      = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-        audioFormat.mFramesPerPacket  = 1;
-        audioFormat.mBytesPerFrame    = audioFormat.mChannelsPerFrame * audioFormat.mBitsPerChannel/8;
-        audioFormat.mBytesPerPacket   = audioFormat.mBytesPerFrame * audioFormat.mFramesPerPacket;
-        
-        //设置输入音频的format
-        status = AudioUnitSetProperty(au_component,
-                                      kAudioUnitProperty_StreamFormat,
-                                      kAudioUnitScope_Input,
-                                      bus0,
-                                      &audioFormat,
-                                      sizeof(audioFormat));
-        [self checkStatus:status];
-        
-        //设置回调
-        AURenderCallbackStruct callbackStruct;
-        callbackStruct.inputProc = (AURenderCallback)on_Audio_Playback;//自己命名一个回调函数
-        callbackStruct.inputProcRefCon = (__bridge void * _Nullable)(self);
-        status = AudioUnitSetProperty(au_component,
-                                      kAudioUnitProperty_SetRenderCallback,
-                                      kAudioUnitScope_Global,
-                                      bus0,
-                                      &callbackStruct,
-                                      sizeof(callbackStruct));
-        [self checkStatus:status];
-
+        result &= [self checkStatus:status error:@"iOUnit kAudioOutputUnitProperty_EnableIO failed"];
     }
-   
-    //设置好后，初始化音频组件！！！
-    status = AudioUnitInitialize(au_component);
-    [self checkStatus:status];
-    
-    NSLog(@"ACCAudioPlayer:初始化成功");
+    return result;
 }
 
+- (BOOL)configMixerUnit {
+    BOOL result = YES;
+    OSStatus status;
+    AudioComponentDescription  desc;
+    desc.componentType         = kAudioUnitType_Mixer;         //音频输出
+    desc.componentSubType      = kAudioUnitSubType_MultiChannelMixer;    //输出通道
+    desc.componentFlags        = 0;                             //默认“0”
+    desc.componentFlagsMask    = 0;                             //默认“0”
+    desc.componentManufacturer = kAudioUnitManufacturer_Apple;  //制造商信息
+    
+    // Get component
+    AudioComponent inputComponent = AudioComponentFindNext(NULL, &desc);    //找音频部件
+
+    // Get audio units
+    status = AudioComponentInstanceNew(inputComponent, &mixerUnit);//实现这个部件单元
+    result &= [self checkStatus:status error:@"mixerUnit AudioComponentInstanceNew failed"];
+
+    //Describe format 参数可以根据项目需要自行调整
+    AudioStreamBasicDescription audioFormat;
+    audioFormat.mSampleRate       = _sampleRate;
+    audioFormat.mBitsPerChannel   = _bitsPerChannel;
+    audioFormat.mChannelsPerFrame = _channelsPerFrame;
+    audioFormat.mFormatID         = kAudioFormatLinearPCM;
+    audioFormat.mFormatFlags      = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+    audioFormat.mFramesPerPacket  = 1;
+    audioFormat.mBytesPerFrame    = audioFormat.mChannelsPerFrame * audioFormat.mBitsPerChannel/8;
+    audioFormat.mBytesPerPacket   = audioFormat.mBytesPerFrame * audioFormat.mFramesPerPacket;
+    
+    //设置输入音频的format
+    status = AudioUnitSetProperty(mixerUnit,
+                                  kAudioUnitProperty_StreamFormat,
+                                  kAudioUnitScope_Input,
+                                  0,
+                                  &audioFormat,
+                                  sizeof(audioFormat));
+    result &= [self checkStatus:status error:@"mixerUnit kAudioUnitProperty_StreamFormat failed"];
+    
+    Float64 sampleRate = _sampleRate;
+    
+    status = AudioUnitSetProperty(mixerUnit,
+                                  kAudioUnitProperty_SampleRate,
+                                  kAudioUnitScope_Output,
+                                  0,
+                                  &audioFormat,
+                                  sizeof(sampleRate));
+    
+    result &= [self checkStatus:status error:@"mixerUnit kAudioUnitProperty_StreamFormat failed"];
+
+    // Set mixer bus count
+    UInt32 busCount = 1;
+    status = AudioUnitSetProperty(mixerUnit,
+                                  kAudioUnitProperty_ElementCount,
+                                  kAudioUnitScope_Input,
+                                  0,
+                                  &busCount,
+                                  sizeof(busCount));
+    result &= [self checkStatus:status error:@"mixerUnit kAudioUnitProperty_ElementCount failed"];
+
+    //设置回调
+    AURenderCallbackStruct callbackStruct;
+    callbackStruct.inputProc = (AURenderCallback)on_Audio_Playback;//自己命名一个回调函数
+    callbackStruct.inputProcRefCon = (__bridge void * _Nullable)(self);
+    status = AudioUnitSetProperty(mixerUnit,
+                                  kAudioUnitProperty_SetRenderCallback,
+                                  kAudioUnitScope_Global,
+                                  0,
+                                  &callbackStruct,
+                                  sizeof(callbackStruct));
+    result &= [self checkStatus:status error:@"mixerUnit kAudioUnitProperty_SetRenderCallback failed"];
+    return result;
+}
 
 static OSStatus on_Audio_Playback(void *inRefCon,
                                   AudioUnitRenderActionFlags *ioActionFlags,
@@ -149,9 +208,7 @@ static OSStatus on_Audio_Playback(void *inRefCon,
         
         UInt32 len = 0;
         len = (byteSize > availableBytes ? availableBytes : byteSize);
-        if (instance.enable) {
-            memcpy(frameBuffer, bufferTail, len);
-        }
+        memcpy(frameBuffer, bufferTail, len);
         TPCircularBufferConsume(instance->buffer, len);
         
         //回调通知本次播放数据是否足够
@@ -167,30 +224,30 @@ static OSStatus on_Audio_Playback(void *inRefCon,
     return noErr;
 }
 
--(BOOL)didPlayerStart{
-    OSStatus status = AudioOutputUnitStart(au_component);
-    return [self checkStatus:status];
-}
-
--(BOOL)didPlayerStop{
-    OSStatus status = AudioOutputUnitStop(au_component);
-    return [self checkStatus:status];
-}
-
--(BOOL)didPlayerRelease{
-    if ([self didPlayerStop] == NO) {
-        return NO;
-    }
-    
-    OSStatus status = AudioUnitUninitialize(au_component);
-    return [self checkStatus:status];
-}
-
 - (BOOL)start {
-    return [self didPlayerStart];
+    OSStatus status;
+    BOOL result = YES;
+    status = AudioUnitInitialize(mixerUnit);
+    result &= [self checkStatus:status error:@"mixerUnit AudioUnitInitialize failed"];
+    status = AudioUnitInitialize(iOUnit);
+    result &= [self checkStatus:status error:@"iOUnit AudioUnitInitialize failed"];
+    
+    status = AudioOutputUnitStart(iOUnit);
+    result &= [self checkStatus:status error:@"iOUnit AudioOutputUnitStart failed"];
+    return result;
 }
 - (BOOL)stop {
-    return [self didPlayerRelease];
+    OSStatus status;
+    BOOL result = YES;
+
+    status = AudioOutputUnitStop(iOUnit);
+    result &= [self checkStatus:status error:@"iOUnit AudioOutputUnitStop failed"];
+    
+    status = AudioUnitUninitialize(mixerUnit);
+    result &= [self checkStatus:status error:@"mixerUnit AudioUnitUninitialize failed"];
+    status = AudioUnitUninitialize(iOUnit);
+    result &= [self checkStatus:status error:@"iOUnit AudioUnitUninitialize failed"];
+    return result;
 }
 
 - (BOOL)isBufferDataEnough {
@@ -209,36 +266,39 @@ static OSStatus on_Audio_Playback(void *inRefCon,
 }
 
 - (void)appendPCM:(const void *)data size:(uint)size {
-    if (self.enable) {
-        TPCircularBufferProduceBytes(buffer, data, (uint32_t)size);
-    }
+    TPCircularBufferProduceBytes(buffer, data, (uint32_t)size);
 }
 
 #pragma mark - Utils
 -(void)setVolume:(double)volume {
-    MPVolumeView *volumeView = [[MPVolumeView alloc]init];
-    volumeView.showsVolumeSlider = YES;
-    UISlider *volumeViewSlider = nil;
-    if (volumeViewSlider == nil) {
-        for (UIView *view in [volumeView subviews]) {
-            if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
-                volumeViewSlider = (UISlider *)view;
-                break;
-            }
-        }
-    }
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [volumeViewSlider setValue:volume animated:NO];
-        [volumeViewSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
-    });
+    //设置mixerUnit输出的音量
+    OSStatus status = AudioUnitSetParameter(mixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, volume, 0);
+    [self checkStatus:status error:@"mixerUnit kMultiChannelMixerParam_Volume failed"];
 }
 
-- (BOOL)checkStatus:(OSStatus)status {
+- (void)setMixerUnitEnable:(BOOL)enable {
+    //设置mixerUnit输入的enable
+    int enableInt = enable?1:0;
+    
+    OSStatus status = AudioUnitSetParameter(mixerUnit, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, 0, enableInt, 0);
+    [self checkStatus:status error:@"mixerUnit kMultiChannelMixerParam_Enable failed"];
+}
+
+- (void)setEnable:(BOOL)enable {
+    _enable;
+    [self setMixerUnitEnable:enable];
+}
+
+#pragma mark - Log
+- (BOOL)checkStatus:(OSStatus)status error:(NSString *)error {
     if (status != 0) {
-        NSLog(@"checkStatus Error: %@", @(status));
+        if (error) {
+            NSLog(@"ACCAudioPlayer Error:(%@)%@", @(status), error);
+        } else {
+            NSLog(@"ACCAudioPlayer Error:(%@)", @(status));
+        }
         return  NO;
     }
-    return  NO;
+    return  YES;
 }
-
 @end
