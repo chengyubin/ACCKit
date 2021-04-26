@@ -285,7 +285,7 @@ static OSStatus on_Audio_Playback(void *inRefCon,
 }
 
 - (void)setEnable:(BOOL)enable {
-    _enable;
+    _enable = enable;
     [self setMixerUnitEnable:enable];
 }
 

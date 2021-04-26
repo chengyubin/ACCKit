@@ -96,14 +96,15 @@
 //    audioFormat.mBytesPerFrame    = audioFormat.mChannelsPerFrame * audioFormat.mBitsPerChannel/8;
 //    audioFormat.mBytesPerPacket   = audioFormat.mBytesPerFrame * audioFormat.mFramesPerPacket;
     
-    //bus0 应用输出到硬件
-    AudioUnitElement bus0 = 0;
     //设置bus0
     /*
      当使用kAudioUnitSubType_VoiceProcessingIO时，控制台会不停输出 AUBuffer.h:61:GetBufferList: EXCEPTION (-1) [mPtrState == kPtrsInvalid is false]: ""，解决方案参考https://developer.apple.com/forums/thread/125147
      解决方案：设置bus0，但是不启用
      */
-    /*{
+    /*
+     //bus0 应用输出到硬件
+     AudioUnitElement bus0 = 0;
+     {
         // Enable IO for playing（kAudioUnitScope_Input ==> recording）
         // flag 1 means start, 0 means stop
         uint32_t flag = 0;
@@ -213,6 +214,7 @@
     return result;
 }
 
+/*
 static OSStatus on_Audio_Playback(void *inRefCon,
                                   AudioUnitRenderActionFlags *ioActionFlags,
                                   const AudioTimeStamp *inTimeStamp,
@@ -222,7 +224,7 @@ static OSStatus on_Audio_Playback(void *inRefCon,
     NSLog(@"on_Audio_Playback");
 
     return noErr;
-}
+}*/
 
 static OSStatus on_Audio_Record(void *inRefCon,
                                 AudioUnitRenderActionFlags *ioActionFlags,
