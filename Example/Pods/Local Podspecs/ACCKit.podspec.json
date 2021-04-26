@@ -21,7 +21,8 @@
   "source_files": "ACCKit/Classes/**/*",
   "frameworks": [
     "AudioToolbox",
-    "AVFoundation"
+    "AVFoundation",
+    "MediaPlayer"
   ],
   "dependencies": {
     "TPCircularBuffer": [

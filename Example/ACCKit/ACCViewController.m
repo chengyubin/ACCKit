@@ -28,13 +28,15 @@
 
     //后台播放、默认外放和支持蓝牙耳机\Airplay
     NSError *error = nil;
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionDefaultToSpeaker|AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowAirPlay error:&error];
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionDefaultToSpeaker|AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowAirPlay|AVAudioSessionCategoryOptionMixWithOthers error:&error];
     if (error) {
         NSLog(@"AVAudioSession setCategory error:%@",error);
     }
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(interruptionNotification:) name:AVAudioSessionInterruptionNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActiveNotification:) name:UIApplicationDidBecomeActiveNotification object:nil];
     [self setupRecorder];
     [self setupPlayer];
+    [self onRecordButtonAction:self.recordButton];
 }
 
 - (void)didReceiveMemoryWarning
@@ -67,6 +69,20 @@
     }
 }
 
+- (void)interruptionNotification:(NSNotification *)notification {
+    id type = [notification.userInfo objectForKey:AVAudioSessionInterruptionTypeKey];    
+    NSLog(@"type %@", type);
+}
+
+- (void)didBecomeActiveNotification:(NSNotification *)notification {
+    NSError *error = nil;
+    [[AVAudioSession sharedInstance] setActive:YES error:&error];
+    if (error) {
+        NSLog(@"AVAudioSession setCategory error:%@",error);
+    }
+    [self.recorder start];
+    [self.player start];
+}
 #pragma mark - Test Methond
 - (void) testSensorMonitor {
     NSLog(@"Begin Monitor");

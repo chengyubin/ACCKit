@@ -220,14 +220,14 @@
         return NO;
     }
     
-    [ACCTimerManager validateTimerForKey:@"BrightnessMonitor" after:0 interval:updateInterval block:^(NSInteger count) {
-        monitor([UIScreen mainScreen].brightness);
-    }];
+//    [ACCTimerManager validateTimerForKey:@"BrightnessMonitor" after:0 interval:updateInterval block:^(NSInteger count) {
+//        monitor([UIScreen mainScreen].brightness);
+//    }];
     return YES;
 }
 
 - (void)stopBrightnessMonitor {
-    [ACCTimerManager invalidateTimerForKey:@"BrightnessMonitor"];
+//    [ACCTimerManager invalidateTimerForKey:@"BrightnessMonitor"];
 }
 
 #pragma mark - Location-位置
