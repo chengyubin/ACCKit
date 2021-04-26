@@ -38,7 +38,7 @@
     return [ACCTimerManager onceTimerWithDelay:delay block:block freeWith:nil];
 }
 
-+ (ACCTimerOperator *)onceTimerWithDelay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *)lifeTimeTrigger {
++ (ACCTimerOperator *)onceTimerWithDelay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject * _Nullable)lifeTimeTrigger {
     ACCTimerConfiguration *configuration = [[[ACCTimerConfiguration defaultConfiguration] fireDate:[NSDate dateWithTimeIntervalSinceNow:delay]] freeWith:lifeTimeTrigger];
     return [[ACCTimerManager getInstance] scheduledTimerWithKey:nil configuration:configuration block:^(NSInteger count, BOOL *stop) {
         [block invoke];
@@ -61,29 +61,29 @@
 }
 
 #pragma mark - Class Create Api - Operate via key
-+ (void)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block {
-    [ACCTimerManager onceTimerWithKey:key delay:delay block:block freeWith:nil];
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block {
+    return [ACCTimerManager onceTimerWithKey:key delay:delay block:block freeWith:nil];
 }
 
-+ (void)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *)lifeTimeTrigger {
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *_Nullable)lifeTimeTrigger {
     ACCTimerConfiguration *configuration = [[[ACCTimerConfiguration defaultConfiguration] fireDate:[NSDate dateWithTimeIntervalSinceNow:delay]] freeWith:lifeTimeTrigger];
-    [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:^(NSInteger count, BOOL *stop) {
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:^(NSInteger count, BOOL *stop) {
         [block invoke];
-    }];
+    }] != nil;
 }
 
-+ (void)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block{
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block{
     return [ACCTimerManager scheduledTimerWithKey:key fireDate:date timeInterval:interval repeats:repeats block:block freeWith:nil];
 }
 
-+ (void)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger{
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger{
     ACCTimerConfiguration *configuration = [[[[[ACCTimerConfiguration defaultConfiguration] fireDate:date] interval:interval] repeats:repeats] freeWith:lifeTimeTrigger];
 
-    [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:block];
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:block] != nil;
 }
 
-+ (void)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block {
-    [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:block];
++ (BOOL)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block {
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:block] != nil;
 }
 
 
@@ -156,7 +156,7 @@
 
 - (void)unregisterTimerForKey:(NSString *)key {
     [self.timerDictionary removeObjectForKey:key];
-    NSLog(@"timer:%@ did unregistered",key);
+//    NSLog(@"timer:%@ did unregistered",key);
 }
 
 #pragma mark - Getter
@@ -169,13 +169,16 @@
 
 #pragma mark - ACCTimerDelegate
 - (void)timerDidInvalidate:(ACCTimer *)timer {
-    NSLog(@"timer:%@ did invalidated",timer.key);
+//    NSLog(@"timer:%@ did invalidated",timer.key);
     [self unregisterTimerForKey:timer.key];
 }
 
 #pragma mark - 1.0.2 Version
 - (ACCTimerOperator *)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block {
     if (!block) {
+        return nil;
+    }
+    if (key && [self isTimerExistForKey:key]) {
         return nil;
     }
     

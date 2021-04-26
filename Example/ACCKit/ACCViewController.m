@@ -17,6 +17,7 @@
 @property (nonatomic, strong) ACCAudioRecorder *recorder;
 @property (nonatomic, strong) ACCAudioPlayer *player;
 
+@property (nonatomic, strong) NSObject *lifeTimeTracker;
 @end
 
 @implementation ACCViewController
@@ -26,17 +27,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
 
-    //后台播放、默认外放和支持蓝牙耳机\Airplay
-    NSError *error = nil;
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionDefaultToSpeaker|AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowAirPlay|AVAudioSessionCategoryOptionMixWithOthers error:&error];
-    if (error) {
-        NSLog(@"AVAudioSession setCategory error:%@",error);
-    }
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(interruptionNotification:) name:AVAudioSessionInterruptionNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActiveNotification:) name:UIApplicationDidBecomeActiveNotification object:nil];
-    [self setupRecorder];
-    [self setupPlayer];
-    [self onRecordButtonAction:self.recordButton];
+    [self testTimer];
 }
 
 - (void)didReceiveMemoryWarning
@@ -131,6 +122,65 @@
 //    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 //        [self.sensorMonitor stopLocationMonitor];
 //    });
+}
+
+- (void)testTimer {
+    self.lifeTimeTracker = [[NSObject alloc] init];
+    NSLog(@"timer-1 begin");
+    ACCTimerOperator *op1 = [ACCTimerManager onceTimerWithDelay:1 block:^{
+        NSLog(@"timer-1 trigger");
+    } freeWith:self.lifeTimeTracker];
+    
+    NSLog(@"timer-2 begin");
+    [ACCTimerManager onceTimerWithKey:@"timer-2" delay:2 block:^{
+        NSLog(@"timer-2 trigger");
+        
+        BOOL result = [ACCTimerManager scheduledTimerWithKey:@"timer-3" fireDate:[NSDate dateWithTimeIntervalSinceNow:1] timeInterval:1 repeats:YES block:^(NSInteger count, BOOL * _Nonnull stop) {
+            NSLog(@"timer-3 trigger %d", count);
+
+        }];
+        NSLog(@"timer-3 begin %@", result?@"succ":@"fail");
+
+        NSLog(@"timer-4 begin");
+        [ACCTimerManager scheduledTimerWithFireDate:[NSDate dateWithTimeIntervalSinceNow:10] timeInterval:1 repeats:YES block:^(NSInteger count, BOOL * _Nonnull stop) {
+            NSLog(@"timer-4 trigger %d",count);
+            
+            if (count < 5) {
+                BOOL result = [ACCTimerManager scheduledTimerWithKey:@"timer-3" fireDate:[NSDate dateWithTimeIntervalSinceNow:1] timeInterval:1 repeats:YES block:^(NSInteger count, BOOL * _Nonnull stop) {
+                    NSLog(@"timer-3 trigger %d", count);
+
+                }];
+                
+                NSLog(@"timer-3 begin %@", result?@"succ":@"fail");
+            }
+            else if (count == 5) {
+                NSLog(@"all timer %@", [ACCTimerManager allTimerOperator]);
+            } else if (count == 10) {
+                if ([ACCTimerManager isTimerExistForKey:@"timer-3"]) {
+                    NSLog(@"timer-3 invalidate");
+                    [ACCTimerManager invalidateTimerForKey:@"timer-3"];
+                }
+            } else if (count > 20) {
+                *stop = YES;
+            }
+        }];
+    }];
+    
+    
+}
+
+- (void)testRecorderAndPlayer {
+    //后台播放、默认外放和支持蓝牙耳机\Airplay
+    NSError *error = nil;
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionDefaultToSpeaker|AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowAirPlay|AVAudioSessionCategoryOptionMixWithOthers error:&error];
+    if (error) {
+        NSLog(@"AVAudioSession setCategory error:%@",error);
+    }
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(interruptionNotification:) name:AVAudioSessionInterruptionNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didBecomeActiveNotification:) name:UIApplicationDidBecomeActiveNotification object:nil];
+    [self setupRecorder];
+    [self setupPlayer];
+    [self onRecordButtonAction:self.recordButton];
 }
 #pragma mark - Lazy Load
 - (ACCSensorMonitor *)sensorMonitor{

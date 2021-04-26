@@ -18,7 +18,6 @@
 #import "ACCSensorMonitor.h"
 #import "ACCTimer.h"
 #import "ACCTimerConfiguration.h"
-#import "ACCTimerManager+Private.h"
 #import "ACCTimerManager.h"
 #import "ACCTimerOperator+Private.h"
 #import "ACCTimerOperator.h"

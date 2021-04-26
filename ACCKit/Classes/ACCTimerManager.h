@@ -42,13 +42,35 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 #pragma mark - Key Operate Methods
-+ (void)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block;
-+ (void)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *)lifeTimeTrigger;
+/*一次性定时器快捷初始化方式
+ @param key 可通过key取消timer
+ @param delay 延迟
+ @param block 执行函数块
+ @param lifeTimeTrigger 可通过绑定lifeTimeTrigger，实现lifeTimeTrigger释放时，自动释放定时器
+ @return YES代表成功，NO代表失败
+*/
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block;
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *_Nullable)lifeTimeTrigger;
 
-+ (void)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block;
-+ (void)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger;
+/*传统定时器初始化方式
+ @param key 可通过key取消timer
+ @param date 触发时间
+ @param interval 定时器间隔
+ @param repeats 是否循环
+ @param block 执行函数块，参数count代表当前循环次数，可通过设置*stop为YES终止定时器
+ @param lifeTimeTrigger 可通过绑定lifeTimeTrigger，实现lifeTimeTrigger释放时，自动释放定时器
+ @return YES代表成功，NO代表失败
+*/
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block;
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger;
 
-+ (void)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block;
+/*定时器高技初始化方式
+ @param key 可通过key取消timer
+ @param configuration 定时器配置
+ @param block 执行函数块，参数count代表当前循环次数，可通过设置*stop为YES终止定时器
+ @return YES代表成功，NO代表失败
+*/
++ (BOOL)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block;
 
 + (void)invalidateTimerForKey:(NSString *)key;
 
