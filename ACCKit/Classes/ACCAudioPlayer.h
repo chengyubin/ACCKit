@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 //播放前回调，isDataEnough表示是否有足够数据送给audiounit
 @property (nonatomic, copy) void(^willPlaybackCallback)(BOOL isDataEnough) ;
+@property (nonatomic) BOOL enable;
 
 - (BOOL)start;
 - (BOOL)stop;
@@ -28,6 +29,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 //本地buffer数据是否足够下一次audiounit播放
 - (BOOL)isBufferDataEnough;
+
+#pragma mark - Utils
+-(void)setVolume:(double)volume;
+
 @end
 
 NS_ASSUME_NONNULL_END

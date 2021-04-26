@@ -6,7 +6,8 @@
 //
 
 #import <Foundation/Foundation.h>
-
+#import "ACCTimerOperator.h"
+#import "ACCTimerConfiguration.h"
 NS_ASSUME_NONNULL_BEGIN
 
 /// 自动管理timer生命周期
@@ -14,66 +15,73 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ACCTimerManager : NSObject
 
-#pragma mark - Class API
+#pragma mark - ACCTimerOperator Methods
+/*一次性定时器快捷初始化方式
+ @param delay 延迟
+ @param block 执行函数块
+ @param lifeTimeTrigger 可通过绑定lifeTimeTrigger，实现lifeTimeTrigger释放时，自动释放定时器
+*/
++ (ACCTimerOperator *)onceTimerWithDelay:(NSTimeInterval)delay block:(dispatch_block_t)block;
++ (ACCTimerOperator *)onceTimerWithDelay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *_Nullable)lifeTimeTrigger;
 
-/// 这个方法提供固定间隔的计时器
-/// @param key 计时器key
-/// @param after 延迟触发时间，单位秒
-/// @param interval 时间间隔
-/// @param block block
-+ (BOOL)validateTimerForKey:(NSString *)key
-                      after:(NSTimeInterval)after
-                   interval:(NSTimeInterval)interval
-                      block:(void(^)(NSInteger count))block;
+/*传统定时器初始化方式
+ @param date 触发时间
+ @param interval 定时器间隔
+ @param repeats 是否循环
+ @param block 执行函数块，参数count代表当前循环次数，可通过设置*stop为YES终止定时器
+ @param lifeTimeTrigger 可通过绑定lifeTimeTrigger，实现lifeTimeTrigger释放时，自动释放定时器
+*/
++ (ACCTimerOperator *)scheduledTimerWithFireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block;
++ (ACCTimerOperator *)scheduledTimerWithFireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger;
 
-/// 这个方法提供固定间隔的计时器
-/// @param key 计时器key
-/// @param fireDate 触发时间，小于或等于当前时间则立即触发
-/// @param interval 时间间隔
-/// @param block 通过block返回的值决定是否终止定时器，返回值YES则终止定时器；count为执行block的次数。
-/// @return YES代表成功，NO代表失败
-+ (BOOL)validateTimerForKey:(NSString *)key
-                   fireDate:(NSDate *)fireDate
-                   interval:(NSTimeInterval)interval
-                      block:(BOOL(^)(NSInteger count))block;
+/*定时器高技初始化方式
+ @param configuration 定时器配置
+ @param block 执行函数块，参数count代表当前循环次数，可通过设置*stop为YES终止定时器
+*/
++ (ACCTimerOperator *)scheduledTimerWithConfiguration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block;
 
 
-/// 这个方法提供可自定义间隔的计时器
-/// @param key 计时器key
-/// @param fireDate 触发时间，小于或等于当前时间则立即触发
-/// @param block 通过block返回的值决定下一次触发定时器的时间，返回值<=0则终止定时器；count为执行block的次数。
-/// @return YES代表成功，NO代表失败
-+ (BOOL)validateTimerForKey:(NSString *)key
-                   fireDate:(NSDate *)fireDate
-                      block:(NSTimeInterval(^)(NSInteger count))block;
+#pragma mark - Key Operate Methods
+/*一次性定时器快捷初始化方式
+ @param key 可通过key取消timer
+ @param delay 延迟
+ @param block 执行函数块
+ @param lifeTimeTrigger 可通过绑定lifeTimeTrigger，实现lifeTimeTrigger释放时，自动释放定时器
+ @return YES代表成功，NO代表失败
+*/
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block;
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *_Nullable)lifeTimeTrigger;
 
-/// Invalidate Timer Methods
-+ (void)invalidateAllTimer;
+/*传统定时器初始化方式
+ @param key 可通过key取消timer
+ @param date 触发时间
+ @param interval 定时器间隔
+ @param repeats 是否循环
+ @param block 执行函数块，参数count代表当前循环次数，可通过设置*stop为YES终止定时器
+ @param lifeTimeTrigger 可通过绑定lifeTimeTrigger，实现lifeTimeTrigger释放时，自动释放定时器
+ @return YES代表成功，NO代表失败
+*/
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block;
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger;
+
+/*定时器高技初始化方式
+ @param key 可通过key取消timer
+ @param configuration 定时器配置
+ @param block 执行函数块，参数count代表当前循环次数，可通过设置*stop为YES终止定时器
+ @return YES代表成功，NO代表失败
+*/
++ (BOOL)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block;
+
 + (void)invalidateTimerForKey:(NSString *)key;
 
-///
 + (BOOL)isTimerExistForKey:(NSString *)key;
 
+
 #pragma mark - Utils
+/// Invalidate Timer Methods
++ (void)invalidateAllTimer;
 
-/// 生成一个绑定object的key，当object为NSString时则直接返回object
-/// @param object object
-+ (NSString *)keyForObject:(id)object;
-
-#pragma mark - Deprecated Methods
-+ (instancetype)getInstance;
-
-- (BOOL)isRegisteredForKey:(NSString *)key NS_DEPRECATED_IOS(10_0, 10_0, "Use isTimerExistForKey: instead");
-
-
-- (void)registerTimerForKey:(NSString *)key
-                   fireDate:(NSDate *)fireDate
-                   interval:(NSTimeInterval)interval
-                     repeat:(BOOL)repeat
-                  fireBlock:(dispatch_block_t)fireBlock NS_DEPRECATED_IOS(10_0, 10_0, "Use validateTimerForKey:after:interval:block instead");
-
-- (void)unregisterTimerForKey:(NSString *)key NS_DEPRECATED_IOS(10_0, 10_0, "Use invalidateTimerForKey: instead");
-
++ (NSArray<ACCTimerOperator *> *)allTimerOperator;
 @end
 
 NS_ASSUME_NONNULL_END
