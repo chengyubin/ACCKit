@@ -7,7 +7,8 @@
 
 #import "ACCTimerManager.h"
 #import "ACCTimer.h"
-@interface ACCTimerManager()
+#import "ACCTimerOperator+Private.h"
+@interface ACCTimerManager()<ACCTimerDelegate>
 @property (nonatomic) dispatch_queue_t timerQueue;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, ACCTimer *> *timerDictionary;
 
@@ -32,84 +33,61 @@
     return self;
 }
 
-- (BOOL)isRegisteredForKey:(NSString *)key {
-    if ([self.timerDictionary objectForKey:key]) {
-        return YES;
-    }
-    return NO;
+#pragma mark - Class Create Api - Operate via ACCTimerOperator
++ (ACCTimerOperator *)onceTimerWithDelay:(NSTimeInterval)delay block:(dispatch_block_t)block {
+    return [ACCTimerManager onceTimerWithDelay:delay block:block freeWith:nil];
 }
 
-- (void)registerTimerForKey:(NSString *)key fireDate:(NSDate *)fireDate interval:(NSTimeInterval)interval repeat:(BOOL)repeat fireBlock:(dispatch_block_t)fireBlock {
-    
-    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, self.timerQueue);
-    dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, [fireDate timeIntervalSinceNow] * NSEC_PER_SEC), interval * NSEC_PER_SEC, 0.1 * NSEC_PER_SEC);
-    __weak __typeof(self) weakSelf = self;
-    dispatch_source_set_event_handler(timer, ^{
-        __typeof(weakSelf) strongSelf = weakSelf;
-
-        [fireBlock invoke];
-        if (!repeat) {
-            [strongSelf unregisterTimerForKey:key];
-        }
-    });
-    dispatch_resume(timer);
-    
-    ACCTimer *timerModel = [ACCTimer new];
-    timerModel.timer = timer;
-    [self.timerDictionary setObject:timerModel forKey:key];
-}
-
-- (void)unregisterTimerForKey:(NSString *)key {
-    ACCTimer *timerModel = [self.timerDictionary objectForKey:key];
-    if (timerModel) {
-        dispatch_source_cancel(timerModel.timer);
-        [self.timerDictionary removeObjectForKey:key];
-    }
-}
-
-
-- (void)perform:(dispatch_block_t)block interval:(NSTimeInterval)interval repeatTimes:(NSInteger)repeatTimes until:(BOOL(^)(void))completion {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if (block) block();
-        if (repeatTimes <= 0) {
-            return ;
-        }
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(interval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            if (completion && !completion()) {
-                [self perform:block interval:interval repeatTimes:repeatTimes-1 until:completion];
-            }
-        });
-    });
-}
-////////////////////////////////////////////////////////////
-///New API
-////////////////////////////////////////////////////////////
-#pragma mark - Class API
-+ (BOOL)validateTimerForKey:(NSString *)key
-                      after:(NSTimeInterval)after
-                   interval:(NSTimeInterval)interval
-                      block:(void(^)(NSInteger count))block {
-    return [[ACCTimerManager getInstance] validateTimerForKey:key fireDate:[[NSDate date] dateByAddingTimeInterval:after] interval:interval block:^BOOL(NSInteger count) {
-        if (block) {
-            block(count);
-        }
-        return NO;
++ (ACCTimerOperator *)onceTimerWithDelay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject * _Nullable)lifeTimeTrigger {
+    ACCTimerConfiguration *configuration = [[[ACCTimerConfiguration defaultConfiguration] fireDate:[NSDate dateWithTimeIntervalSinceNow:delay]] freeWith:lifeTimeTrigger];
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:nil configuration:configuration block:^(NSInteger count, BOOL *stop) {
+        [block invoke];
     }];
 }
 
-+ (BOOL)validateTimerForKey:(NSString *)key
-                   fireDate:(NSDate *)fireDate
-                   interval:(NSTimeInterval)interval
-                      block:(BOOL(^)(NSInteger count))block {
-    return [[ACCTimerManager getInstance] validateTimerForKey:key fireDate:fireDate interval:interval block:block];
++ (ACCTimerOperator *)scheduledTimerWithFireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block {
+    return [ACCTimerManager scheduledTimerWithFireDate:date timeInterval:interval repeats:repeats block:block freeWith:nil];
 }
 
-+ (BOOL)validateTimerForKey:(NSString *)key
-                   fireDate:(NSDate *)fireDate
-                      block:(NSTimeInterval(^)(NSInteger count))block {
-    return [[ACCTimerManager getInstance] validateTimerForKey:key fireDate:fireDate block:block];
++ (ACCTimerOperator *)scheduledTimerWithFireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger{
+    ACCTimerConfiguration *configuration = [[[[[ACCTimerConfiguration defaultConfiguration] fireDate:date] interval:interval] repeats:repeats] freeWith:lifeTimeTrigger];
+
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:nil configuration:configuration block:block];
 }
 
+
++ (ACCTimerOperator *)scheduledTimerWithConfiguration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block {
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:nil configuration:configuration block:block];
+}
+
+#pragma mark - Class Create Api - Operate via key
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block {
+    return [ACCTimerManager onceTimerWithKey:key delay:delay block:block freeWith:nil];
+}
+
++ (BOOL)onceTimerWithKey:(NSString *)key delay:(NSTimeInterval)delay block:(dispatch_block_t)block freeWith:(NSObject *_Nullable)lifeTimeTrigger {
+    ACCTimerConfiguration *configuration = [[[ACCTimerConfiguration defaultConfiguration] fireDate:[NSDate dateWithTimeIntervalSinceNow:delay]] freeWith:lifeTimeTrigger];
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:^(NSInteger count, BOOL *stop) {
+        [block invoke];
+    }] != nil;
+}
+
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block{
+    return [ACCTimerManager scheduledTimerWithKey:key fireDate:date timeInterval:interval repeats:repeats block:block freeWith:nil];
+}
+
++ (BOOL)scheduledTimerWithKey:(NSString *)key fireDate:(NSDate *)date timeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSInteger count, BOOL *stop))block freeWith:(NSObject *_Nullable)lifeTimeTrigger{
+    ACCTimerConfiguration *configuration = [[[[[ACCTimerConfiguration defaultConfiguration] fireDate:date] interval:interval] repeats:repeats] freeWith:lifeTimeTrigger];
+
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:block] != nil;
+}
+
++ (BOOL)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block {
+    return [[ACCTimerManager getInstance] scheduledTimerWithKey:key configuration:configuration block:block] != nil;
+}
+
+
+#pragma mark - Class Destory Api
 + (void)invalidateAllTimer {
     [[ACCTimerManager getInstance] invalidateAllTimer];
 }
@@ -122,99 +100,22 @@
     return [[ACCTimerManager getInstance] isTimerExistForKey:key];
 }
 
-#pragma mark - Object API
-- (BOOL)validateTimerForKey:(NSString *)key
-                   fireDate:(NSDate *)fireDate
-                   interval:(NSTimeInterval)interval
-                      block:(BOOL(^)(NSInteger count))block {
-    if (!key) {
-        NSLog(@"%s: key is nil，validate timer failed",__func__);
-        return NO;
-    }
-    
-    if (!block) {
-        NSLog(@"%s: block is nil，validate timer failed",__func__);
-        return NO;
-    }
-    
-    if ([self isTimerExistForKey:key]) {
-        NSLog(@"%s: timer for key %@ existed",__func__, key);
-        return NO;
-    }
-    ACCTimer *timerModel = [ACCTimer new];
-    [self.timerDictionary setObject:timerModel forKey:key];
-
-    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, self.timerQueue);
-    dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, MAX(0, [fireDate timeIntervalSinceNow]) * NSEC_PER_SEC), interval * NSEC_PER_SEC, 0.1 * NSEC_PER_SEC);
-    __weak __typeof(self) weakSelf = self;
-    dispatch_source_set_event_handler(timer, ^{
-        __typeof(weakSelf) strongSelf = weakSelf;
-        NSInteger count = ++[strongSelf.timerDictionary objectForKey:key].count;
-        
-        //invalidate timer if block return YES
-        if (block(count)) {
-            [strongSelf invalidateTimerForKey:key];
-        }
-    });
-    dispatch_resume(timer);
-    
-    timerModel.timer = timer;
-        
-    return YES;
++ (NSArray<ACCTimerOperator *> *)allTimerOperator {
+    return [[ACCTimerManager getInstance] allTimerOperator];
 }
 
-- (BOOL)validateTimerForKey:(NSString *)key
-                   fireDate:(NSDate *)fireDate
-                      block:(NSTimeInterval(^)(NSInteger count))block {
-    if (!key) {
-        NSLog(@"%s: key is nil，validate timer failed",__func__);
-        return NO;
-    }
-    
-    if (!block) {
-        NSLog(@"%s: block is nil，validate timer failed",__func__);
-        return NO;
-    }
-    
-    if ([self isTimerExistForKey:key]) {
-        NSLog(@"%s: timer for key %@ existed",__func__, key);
-        return NO;
-    }
-    ACCTimer *timerModel = [ACCTimer new];
-    [self.timerDictionary setObject:timerModel forKey:key];
-
-    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, self.timerQueue);
-    dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, MAX(0, [fireDate timeIntervalSinceNow]) * NSEC_PER_SEC), DISPATCH_TIME_FOREVER, 0.1 * NSEC_PER_SEC);
-    __weak __typeof(self) weakSelf = self;
-    dispatch_source_set_event_handler(timer, ^{
-        __typeof(weakSelf) strongSelf = weakSelf;
-        NSInteger count = ++[strongSelf.timerDictionary objectForKey:key].count;
-        
-        //invalidate timer if block return YES
-        NSTimeInterval nextTimerInterval = block(count);
-        if (nextTimerInterval <= 0) {
-            [strongSelf invalidateTimerForKey:key];
-        } else {
-            dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, MAX(0, nextTimerInterval) * NSEC_PER_SEC), DISPATCH_TIME_FOREVER, 0.1 * NSEC_PER_SEC);
-        }
-    });
-    dispatch_resume(timer);
-    
-    timerModel.timer = timer;
-    return YES;
-}
-
+#pragma mark - Instance Api
 - (void)invalidateAllTimer {
-    [[self.timerDictionary allKeys] enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        [self invalidateTimerForKey:obj];
+    
+    [[self.timerDictionary allValues] enumerateObjectsUsingBlock:^(ACCTimer * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [obj invalidate];
     }];
 }
 
 - (void)invalidateTimerForKey:(NSString *)key {
-    ACCTimer *timerModel = [self.timerDictionary objectForKey:key];
-    if (timerModel) {
-        dispatch_source_cancel(timerModel.timer);
-        [self.timerDictionary removeObjectForKey:key];
+    ACCTimer *timer = [self.timerDictionary objectForKey:key];
+    if (timer) {
+        [timer invalidate];
     }
 }
 
@@ -225,6 +126,15 @@
     return NO;
 }
 
+- (NSArray<ACCTimerOperator *> *)allTimerOperator {
+    NSMutableArray *allTimerOperator = [NSMutableArray new];
+    NSArray<ACCTimer *> *timers = [self.timerDictionary allValues].copy;
+    [timers enumerateObjectsUsingBlock:^(ACCTimer * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        ACCTimerOperator *operator = [[ACCTimerOperator alloc] initWithTimerKey:obj.key];
+        [allTimerOperator addObject:operator];
+    }];
+    return allTimerOperator;
+}
 #pragma mark - Utils
 + (NSString *)keyForObject:(id)object {
     if ([object isKindOfClass:[NSString class]]) {
@@ -234,6 +144,21 @@
     return key;
 }
 
+- (NSString *)registerTimer:(ACCTimer *)timer forKey:(NSString *)key {
+    NSString *finalKey;
+    if (timer) {
+        finalKey = key?key:[ACCTimerManager keyForObject:timer];
+        timer.key = finalKey;
+        [self.timerDictionary setObject:timer forKey:finalKey];
+    }
+    return finalKey;
+}
+
+- (void)unregisterTimerForKey:(NSString *)key {
+    [self.timerDictionary removeObjectForKey:key];
+//    NSLog(@"timer:%@ did unregistered",key);
+}
+
 #pragma mark - Getter
 - (NSMutableDictionary<NSString *, ACCTimer *> *)timerDictionary {
     if (!_timerDictionary) {
@@ -241,5 +166,36 @@
     }
     return _timerDictionary;
 }
+
+#pragma mark - ACCTimerDelegate
+- (void)timerDidInvalidate:(ACCTimer *)timer {
+//    NSLog(@"timer:%@ did invalidated",timer.key);
+    [self unregisterTimerForKey:timer.key];
+}
+
+#pragma mark - 1.0.2 Version
+- (ACCTimerOperator *)scheduledTimerWithKey:(NSString *)key configuration:(ACCTimerConfiguration *)configuration block:(void (^)(NSInteger count, BOOL *stop))block {
+    if (!block) {
+        return nil;
+    }
+    if (key && [self isTimerExistForKey:key]) {
+        return nil;
+    }
+    
+    ACCTimer *timer = [[ACCTimer alloc] initWithConfiguration:configuration block:^(ACCTimer * _Nonnull timer) {
+        BOOL stop = NO;
+        block(timer.count, &stop);
+        if (stop) {
+            [timer invalidate];
+        }
+    } delegate:self];
+    [timer resume];
+    
+    ACCTimerOperator *operator = [[ACCTimerOperator alloc] initWithTimerKey:[self registerTimer:timer forKey:key]];
+
+    return operator;
+}
+
+
 
 @end
