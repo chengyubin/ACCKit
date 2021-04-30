@@ -47,21 +47,21 @@
     BOOL result = YES;
 
     result &= [self configIOUnit];
-    result &= [self configMixerUnit];
-    
-    //make connection, iounit bus0 output to iounit bus0 input
-    AudioUnitConnection connection;
-    connection.sourceAudioUnit    = iOUnit;
-    connection.sourceOutputNumber = 1;
-    connection.destInputNumber    = 0;
-    
-    OSStatus status = AudioUnitSetProperty(mixerUnit,
-                                           kAudioUnitProperty_MakeConnection,
-                                           kAudioUnitScope_Input,
-                                           0,
-                                           &connection,
-                                           sizeof(connection));
-    result &= [self checkStatus:status error:@"make connection failed"];
+//    result &= [self configMixerUnit];
+//    
+//    //make connection, iounit bus0 output to iounit bus0 input
+//    AudioUnitConnection connection;
+//    connection.sourceAudioUnit    = iOUnit;
+//    connection.sourceOutputNumber = 1;
+//    connection.destInputNumber    = 0;
+//    
+//    OSStatus status = AudioUnitSetProperty(mixerUnit,
+//                                           kAudioUnitProperty_MakeConnection,
+//                                           kAudioUnitScope_Input,
+//                                           0,
+//                                           &connection,
+//                                           sizeof(connection));
+//    result &= [self checkStatus:status error:@"make connection failed"];
 
     NSLog(@"ACCAudioRecorder:初始化成功");
 }
@@ -85,16 +85,16 @@
     [self checkStatus:status];
     
     
-//    //Describe format 参数可以根据项目需要自行调整
-//    AudioStreamBasicDescription audioFormat;
-//    audioFormat.mSampleRate       = _sampleRate;
-//    audioFormat.mBitsPerChannel   = _bitsPerChannel;
-//    audioFormat.mChannelsPerFrame = _channelsPerFrame;
-//    audioFormat.mFormatID         = kAudioFormatLinearPCM;
-//    audioFormat.mFormatFlags      = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-//    audioFormat.mFramesPerPacket  = 1;
-//    audioFormat.mBytesPerFrame    = audioFormat.mChannelsPerFrame * audioFormat.mBitsPerChannel/8;
-//    audioFormat.mBytesPerPacket   = audioFormat.mBytesPerFrame * audioFormat.mFramesPerPacket;
+    //Describe format 参数可以根据项目需要自行调整
+    AudioStreamBasicDescription audioFormat;
+    audioFormat.mSampleRate       = _sampleRate;
+    audioFormat.mBitsPerChannel   = _bitsPerChannel;
+    audioFormat.mChannelsPerFrame = _channelsPerFrame;
+    audioFormat.mFormatID         = kAudioFormatLinearPCM;
+    audioFormat.mFormatFlags      = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+    audioFormat.mFramesPerPacket  = 1;
+    audioFormat.mBytesPerFrame    = audioFormat.mChannelsPerFrame * audioFormat.mBitsPerChannel/8;
+    audioFormat.mBytesPerPacket   = audioFormat.mBytesPerFrame * audioFormat.mFramesPerPacket;
     
     //设置bus0
     /*
@@ -151,24 +151,24 @@
                                       sizeof(flag));
         [self checkStatus:status];
         
-//        status = AudioUnitSetProperty(iOUnit,
-//                                      kAudioUnitProperty_StreamFormat,
-//                                      kAudioUnitScope_Output,
-//                                      bus1,
-//                                      &audioFormat,
-//                                      sizeof(audioFormat));
-//        [self checkStatus:status];
+        status = AudioUnitSetProperty(iOUnit,
+                                      kAudioUnitProperty_StreamFormat,
+                                      kAudioUnitScope_Output,
+                                      bus1,
+                                      &audioFormat,
+                                      sizeof(audioFormat));
+        [self checkStatus:status];
         
-//        AURenderCallbackStruct callbackStruct;
-//        callbackStruct.inputProc = (AURenderCallback)on_Audio_Record;//自己命名一个回调函数
-//        callbackStruct.inputProcRefCon = (__bridge void * _Nullable)(self);
-//        status = AudioUnitSetProperty(iOUnit,
-//                                      kAudioOutputUnitProperty_SetInputCallback,
-//                                      kAudioUnitScope_Global,
-//                                      bus1,
-//                                      &callbackStruct,
-//                                      sizeof(callbackStruct));
-//        [self checkStatus:status];
+        AURenderCallbackStruct callbackStruct;
+        callbackStruct.inputProc = (AURenderCallback)on_Audio_Record;//自己命名一个回调函数
+        callbackStruct.inputProcRefCon = (__bridge void * _Nullable)(self);
+        status = AudioUnitSetProperty(iOUnit,
+                                      kAudioOutputUnitProperty_SetInputCallback,
+                                      kAudioUnitScope_Global,
+                                      bus1,
+                                      &callbackStruct,
+                                      sizeof(callbackStruct));
+        [self checkStatus:status];
     }
     return result;
 }
@@ -274,9 +274,9 @@ static OSStatus on_Audio_Record(void *inRefCon,
 - (BOOL)checkStatus:(OSStatus)status error:(NSString *)error {
     if (status != 0) {
         if (error) {
-            NSLog(@"ACCAudioPlayer Error:(%@)%@", @(status), error);
+            NSLog(@"ACCAudioRecorder Error:(%@)%@", @(status), error);
         } else {
-            NSLog(@"ACCAudioPlayer Error:(%@)", @(status));
+            NSLog(@"ACCAudioRecorder Error:(%@)", @(status));
         }
         return  NO;
     }
