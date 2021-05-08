@@ -165,6 +165,15 @@
                                   sizeof(busCount));
     result &= [self checkStatus:status error:@"mixerUnit kAudioUnitProperty_ElementCount failed"];
 
+    UInt32 maxFramesPerSlice = 4096;
+    status = AudioUnitSetProperty(mixerUnit,
+                                  kAudioUnitProperty_MaximumFramesPerSlice,
+                                  kAudioUnitScope_Global,
+                                  0,
+                                  &maxFramesPerSlice,
+                                  sizeof(maxFramesPerSlice));
+    result &= [self checkStatus:status error:@"mixerUnit kAudioUnitProperty_MaximumFramesPerSlice failed"];
+    
     //设置回调
     AURenderCallbackStruct callbackStruct;
     callbackStruct.inputProc = (AURenderCallback)on_Audio_Playback;//自己命名一个回调函数
@@ -213,12 +222,11 @@ static OSStatus on_Audio_Playback(void *inRefCon,
         
         //回调通知本次播放数据是否足够
         if (instance.willPlaybackCallback) {
-            instance.willPlaybackCallback(availableBytes >= byteSize);
+            instance.willPlaybackCallback(availableBytes >= (instance->_dataByteSizeNeedPreCallback?:byteSize));
         }
 
         //将每次buffer所需的数据大小缓存起来，用作本地buffer的长度
         instance->_dataByteSizeNeedPreCallback = byteSize;
-
     }
 
     return noErr;

@@ -20,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
                     bitsPerChannel:(int)bitsPerChannel;
 
 //播放前回调，isDataEnough表示是否有足够数据送给audiounit
-@property (nonatomic, copy) void(^willPlaybackCallback)(BOOL isDataEnough) ;
+@property (nonatomic, copy, nullable) void(^willPlaybackCallback)(BOOL isDataEnough) ;
 @property (nonatomic) BOOL enable;
 
 - (BOOL)start;
