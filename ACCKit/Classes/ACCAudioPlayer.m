@@ -22,6 +22,7 @@
 @property (nonatomic) UInt32 bitsPerChannel;
 
 @property (nonatomic) UInt32 dataByteSizeNeedPreCallback;
+@property (nonatomic) UInt64 lastAudioHostTime;
 
 @end
 
@@ -226,7 +227,14 @@ static OSStatus on_Audio_Playback(void *inRefCon,
         }
 
         //将每次buffer所需的数据大小缓存起来，用作本地buffer的长度
-        instance->_dataByteSizeNeedPreCallback = byteSize;
+        //有可能一帧会回调两次
+        //如果是同一帧，则相加，不是，则直接赋值
+        if (instance.lastAudioHostTime != inTimeStamp->mHostTime) {
+            instance->_dataByteSizeNeedPreCallback = byteSize;
+        } else {
+            instance->_dataByteSizeNeedPreCallback += byteSize;
+        }
+        instance.lastAudioHostTime = inTimeStamp->mHostTime;
     }
 
     return noErr;
