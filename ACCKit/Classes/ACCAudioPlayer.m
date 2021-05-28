@@ -221,6 +221,7 @@ static OSStatus on_Audio_Playback(void *inRefCon,
         memcpy(frameBuffer, bufferTail, len);
         TPCircularBufferConsume(instance->buffer, len);
         
+        [instance log:[NSString stringWithFormat:@"audio player 回调: %@, %@, %@",@(availableBytes), @(instance->_dataByteSizeNeedPreCallback), @(byteSize)]];
         //回调通知本次播放数据是否足够
         if (instance.willPlaybackCallback) {
             instance.willPlaybackCallback(availableBytes >= (instance->_dataByteSizeNeedPreCallback?:byteSize));
@@ -234,6 +235,9 @@ static OSStatus on_Audio_Playback(void *inRefCon,
         } else {
             instance->_dataByteSizeNeedPreCallback += byteSize;
         }
+        
+        [instance log:[NSString stringWithFormat:@"audio player 回调: 新的size %@", @(instance->_dataByteSizeNeedPreCallback)]];
+
         instance.lastAudioHostTime = inTimeStamp->mHostTime;
     }
 
@@ -309,12 +313,20 @@ static OSStatus on_Audio_Playback(void *inRefCon,
 - (BOOL)checkStatus:(OSStatus)status error:(NSString *)error {
     if (status != 0) {
         if (error) {
-            NSLog(@"ACCAudioPlayer Error:(%@)%@", @(status), error);
+            [self log:[NSString stringWithFormat:@"ACCAudioPlayer Error:(%@)%@", @(status), error]];
         } else {
-            NSLog(@"ACCAudioPlayer Error:(%@)", @(status));
+            [self log:[NSString stringWithFormat:@"ACCAudioPlayer Error:(%@)", @(status)]];
         }
         return  NO;
     }
     return  YES;
+}
+
+- (void)log:(NSString *)log {
+    if (self.log) {
+        self.log(log);
+    } else {
+        NSLog(@"%@",log);
+    }
 }
 @end
