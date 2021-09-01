@@ -81,10 +81,12 @@
 }
 
 - (void)invalidate {
-    dispatch_source_cancel(self.timer);
-    self.timer = nil;
-    if ([self.delegate respondsToSelector:@selector(timerDidInvalidate:)]) {
-        [self.delegate timerDidInvalidate:self];
+    if (self.timer) {
+        dispatch_source_cancel(self.timer);
+        self.timer = nil;
+        if ([self.delegate respondsToSelector:@selector(timerDidInvalidate:)]) {
+            [self.delegate timerDidInvalidate:self];
+        }
     }
 }
 
