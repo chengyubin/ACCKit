@@ -325,8 +325,6 @@ static OSStatus on_Audio_Playback(void *inRefCon,
 - (void)log:(NSString *)log {
     if (self.log) {
         self.log(log);
-    } else {
-        NSLog(@"%@",log);
     }
 }
 @end
